@@ -77,4 +77,4 @@ def image_search():
 	return indices
 
 if __name__ == "__main__":
-	app.run(port = 7080, debug = True)
+	app.run()
