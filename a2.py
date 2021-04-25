@@ -8,7 +8,6 @@ from PIL import Image as IMG
 import requests
 import re
 from io import BytesIO
-import urllib
 
 from flask_cors import CORS
 
@@ -74,8 +73,6 @@ def extract_features():
 			img = IMG.open(BytesIO(requests.get(img_path).content))
 			img = img.convert('RGB')
 			img = img.resize((128,128), IMG.NEAREST)
-			# with urllib.request.urlopen(img_path) as url:
-			# 	img = image.load_img(BytesIO(url.read()), target_size=(input_shape[0], input_shape[1]))
 		else:
 			img = image.load_img(img_path, target_size=(input_shape[0], input_shape[1]))
 
