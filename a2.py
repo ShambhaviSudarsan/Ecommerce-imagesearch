@@ -8,6 +8,7 @@ from PIL import Image as IMG
 import requests
 import re
 from io import BytesIO
+import urllib
 
 from flask_cors import CORS
 
@@ -55,11 +56,11 @@ def extract_features():
 	image_path = image_directions[0]
 	image_link = image_directions[1]
 	
-	model = ResNet50(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+	model = ResNet50(weights='imagenet', include_top=False, input_shape=(64, 64, 3))
 
 	def extract_features_func(img_path, model):
 		print(img_path)
-		input_shape = (128,128,3)
+		input_shape = (64,64,3)
 		regex = re.compile(
 			r'^(?:http|ftp)s?://' # http:// or https://
 			r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
@@ -72,7 +73,9 @@ def extract_features():
 		if(re.match(regex,img_path)):
 			img = IMG.open(BytesIO(requests.get(img_path).content))
 			img = img.convert('RGB')
-			img = img.resize((128,128), IMG.NEAREST)
+			img = img.resize((64,64), IMG.NEAREST)
+			# with urllib.request.urlopen(img_path) as url:
+			# 	img = image.load_img(BytesIO(url.read()), target_size=(input_shape[0], input_shape[1]))
 		else:
 			img = image.load_img(img_path, target_size=(input_shape[0], input_shape[1]))
 
@@ -118,10 +121,10 @@ def image_search():
 	data_values = list(data.values())
 	image_path = data_values[0]
 	
-	model = ResNet50(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+	model = ResNet50(weights='imagenet', include_top=False, input_shape=(64, 64, 3))
 
 	def extract_features_func(img_path, model):
-		input_shape = (128,128,3)
+		input_shape = (64,64,3)
 		
 		img = image.load_img(img_path, target_size=(input_shape[0], input_shape[1]))
 		img_array = image.img_to_array(img)
