@@ -46,9 +46,9 @@ def feature_vector_db():
 
 @app.route("/extract_features", methods = ['GET','POST'])
 def extract_features():
-	print("Before")
+	print("Extract Before")
 	data = request.get_json(force = True)
-	print("Data Arrives",data)
+	print("Extract Data Arrives",data)
 	data_values = list(data.values())
 	product_id = data_values[0]
 	image_directions = list(data_values[1].values())
