@@ -10,11 +10,16 @@ import re
 from io import BytesIO
 import urllib
 
+# from pymongo import MongoClient
+
 from flask_cors import CORS
 
 app = Flask(__name__)
 
 CORS(app)
+# client = MongoClient("mongodb+srv://ecommercedb:atharvarocks123@ecomm-cluster1.ryw5u.mongodb.net/Edb?retryWrites=true&w=majority")
+
+# db = client.users
 
 feature_vector_list = []
 product_id_list = []
@@ -35,7 +40,7 @@ def feature_vector_db():
 		productId = data[i]['productId']
 		feature_vector_list.append(featureVector)
 		product_id_list.append(productId)
-		print(len(feature_vector_list))
+		print(len(feature_vector_list), len(featureVector))
 
 	print("Data Arrives",product_id_list)
 
@@ -46,38 +51,22 @@ def feature_vector_db():
 
 @app.route("/extract_features", methods = ['GET','POST'])
 def extract_features():
-	print("Extract Before")
+	print("Before")
 	data = request.get_json(force = True)
-	print("Extract Data Arrives",data)
+	# print("Data Arrives",data)
 	data_values = list(data.values())
 	product_id = data_values[0]
-	image_directions = list(data_values[1].values())
-	print(image_directions)
-	image_path = image_directions[0]
-	image_link = image_directions[1]
+	image_link = data_values[1]
 	
-	model = ResNet50(weights='imagenet', include_top=False, input_shape=(64, 64, 3))
+	model = ResNet50(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
 
 	def extract_features_func(img_path, model):
 		print(img_path)
-		input_shape = (64,64,3)
-		regex = re.compile(
-			r'^(?:http|ftp)s?://' # http:// or https://
-			r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-			r'localhost|' #localhost...
-			r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-			r'(?::\d+)?' # optional port
-			r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+		input_shape = (128,128,3)
 
-		# print(type(img_path),regex)
-		if(re.match(regex,img_path)):
-			img = IMG.open(BytesIO(requests.get(img_path).content))
-			img = img.convert('RGB')
-			img = img.resize((64,64), IMG.NEAREST)
-			# with urllib.request.urlopen(img_path) as url:
-			# 	img = image.load_img(BytesIO(url.read()), target_size=(input_shape[0], input_shape[1]))
-		else:
-			img = image.load_img(img_path, target_size=(input_shape[0], input_shape[1]))
+		img = IMG.open(BytesIO(requests.get(img_path).content))
+		img = img.convert('RGB')
+		img = img.resize((128,128), IMG.NEAREST)
 
 		img_array = image.img_to_array(img)
 		
@@ -91,10 +80,7 @@ def extract_features():
 		
 		return normalized_features
 
-	if image_link != '':
-		features = extract_features_func(image_link, model)
-	else:
-		features = extract_features_func(image_path, model)
+	features = extract_features_func(image_link, model)
 	feature_vector_list.append(features)
 	product_id_list.append(product_id)
 
@@ -119,14 +105,22 @@ def delete_product():
 def image_search():
 	data = request.get_json(force = True)
 	data_values = list(data.values())
+	print(type(data_values[0]))
 	image_path = data_values[0]
-	
-	model = ResNet50(weights='imagenet', include_top=False, input_shape=(64, 64, 3))
 
-	def extract_features_func(img_path, model):
-		input_shape = (64,64,3)
+	result_product_id = []
+	# return {"product_ids" : result_product_id}
+	
+	model = ResNet50(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+
+	def extract_features_image_search(img_path, model):
+		print(img_path)
+		input_shape = (128,128,3)
+
+		img = IMG.open(BytesIO(requests.get(img_path).content))
+		img = img.convert('RGB')
+		img = img.resize((128,128), IMG.NEAREST)
 		
-		img = image.load_img(img_path, target_size=(input_shape[0], input_shape[1]))
 		img_array = image.img_to_array(img)
 		
 		expanded_img_array = np.expand_dims(img_array, axis=0)
@@ -139,15 +133,15 @@ def image_search():
 		
 		return normalized_features
 
-	query_image_features = extract_features_func(image_path, model)
+	query_image_features = extract_features_image_search(image_path, model)
 	print(len(feature_vector_list), len(feature_vector_list[0]))
 	print(type(feature_vector_list), type(feature_vector_list[0]))
+	print(len(query_image_features), type(query_image_features))
 	neighbors = NearestNeighbors(n_neighbors = 2, algorithm='brute', metric='euclidean').fit(feature_vector_list)
 	indices = neighbors.kneighbors([query_image_features])
 	ind1 = list(indices)
 	ind = list(ind1[1])
 	# print(ind[0])
-	result_product_id = []
 	for i in range(2):
 		result_product_id.append(product_id_list[ind[0][i]])
 		# print(product_id_list[ind[0][i]])
