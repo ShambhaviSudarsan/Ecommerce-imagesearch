@@ -9,51 +9,36 @@ import requests
 import re
 from io import BytesIO
 import urllib
-
-# from pymongo import MongoClient
-
+from pymongo import MongoClient
 from flask_cors import CORS
 
 app = Flask(__name__)
 
 CORS(app)
-# client = MongoClient("mongodb+srv://ecommercedb:atharvarocks123@ecomm-cluster1.ryw5u.mongodb.net/Edb?retryWrites=true&w=majority")
 
-# db = client.users
+client = MongoClient("mongodb+srv://ecommercedb:atharvarocks123@ecomm-cluster1.ryw5u.mongodb.net/Edb?retryWrites=true&w=majority")
 
 feature_vector_list = []
 product_id_list = []
 
-@app.route("/feature_vector_db", methods = ['GET','POST'])
-def feature_vector_db():
-	print("Before")
+print("STARTED Extracting data from DB")
+db = client['Edb']
+featureDB = db['imagesearches']
+db_data_list = featureDB.find({},{'_id':0, 'featureVector':1, 'productId':1})
 
-	feature_vector_list.clear()
-	product_id_list.clear()
+for i in db_data_list:
+	feature_vector_list.append(i['featureVector'])
+	product_id_list.append(str(i['productId']))
 
-	data_raw = request.get_json(force = True)
-	# data = list(data_raw)
-	# print(type(data))
-	data = data_raw['product_feature_data']
-	for i in range(len(data)):
-		featureVector = data[i]['featureVector']
-		productId = data[i]['productId']
-		feature_vector_list.append(featureVector)
-		product_id_list.append(productId)
-		print(len(feature_vector_list), len(featureVector))
+print(type(feature_vector_list[0]), type(product_id_list[0]))
+print("COMPLETED Extracting data from DB")
 
-	print("Data Arrives",product_id_list)
-
-	if len(product_id_list) > 0:
-		return {'message_result': "good"}
-	else:
-		return {'message_result': "bad"}
 
 @app.route("/extract_features", methods = ['GET','POST'])
 def extract_features():
 	print("Before")
 	data = request.get_json(force = True)
-	# print("Data Arrives",data)
+	print("Data Arrives",data)
 	data_values = list(data.values())
 	product_id = data_values[0]
 	image_link = data_values[1]
@@ -81,6 +66,7 @@ def extract_features():
 		return normalized_features
 
 	features = extract_features_func(image_link, model)
+	print(len(features),product_id)
 	feature_vector_list.append(features)
 	product_id_list.append(product_id)
 
@@ -88,18 +74,29 @@ def extract_features():
 
 @app.route('/delete_product', methods = ['GET','POST'])
 def delete_product():
+	print(len(product_id_list))
 	data = request.get_json(force = True)
 	data_values = list(data.values())
 	prod_id = data_values[0]
-
-	val = -1
+	print(prod_id, product_id_list[-1])
+	print(type(prod_id), type(product_id_list[-1]))
+	print(product_id_list)
+	ind = -1
 	for i in range(len(product_id_list)):
 		if product_id_list[i] == prod_id:
 			ind = i
 			break
-	
-	product_id_list.pop(i)
-	feature_vector_list.pop(i)
+
+	print(ind, product_id_list[ind])
+	if ind == -1:
+		return {"message":"bad"}
+	else:
+		product_id_list.pop(ind)
+		feature_vector_list.pop(ind)
+
+		print(len(product_id_list))
+
+		return {"message":"ok"}
 
 @app.route("/image_search", methods = ['GET','POST'])
 def image_search():
@@ -137,6 +134,7 @@ def image_search():
 	print(len(feature_vector_list), len(feature_vector_list[0]))
 	print(type(feature_vector_list), type(feature_vector_list[0]))
 	print(len(query_image_features), type(query_image_features))
+	print(len(product_id_list), type(product_id_list[0]))
 	neighbors = NearestNeighbors(n_neighbors = 2, algorithm='brute', metric='euclidean').fit(feature_vector_list)
 	indices = neighbors.kneighbors([query_image_features])
 	ind1 = list(indices)
