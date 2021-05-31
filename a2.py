@@ -16,10 +16,12 @@ app = Flask(__name__)
 
 CORS(app)
 
-client = MongoClient("mongodb+srv://ecommercedb:atharvarocks123@ecomm-cluster1.ryw5u.mongodb.net/Edb?retryWrites=true&w=majority")
-
+# Lists to store feeature vectors and product id
 feature_vector_list = []
 product_id_list = []
+
+# Connecting with MongoDB
+client = MongoClient("mongodb+srv://ecommercedb:atharvarocks123@ecomm-cluster1.ryw5u.mongodb.net/Edb?retryWrites=true&w=majority")
 
 print("STARTED Extracting data from DB")
 db = client['Edb']
@@ -131,16 +133,14 @@ def image_search():
 		return normalized_features
 
 	query_image_features = extract_features_image_search(image_path, model)
-	print(len(feature_vector_list), len(feature_vector_list[0]))
-	print(type(feature_vector_list), type(feature_vector_list[0]))
-	print(len(query_image_features), type(query_image_features))
-	print(len(product_id_list), type(product_id_list[0]))
-	neighbors = NearestNeighbors(n_neighbors = 2, algorithm='brute', metric='euclidean').fit(feature_vector_list)
+	
+	neighbors = NearestNeighbors(n_neighbors = 5, algorithm='brute', metric='cosine').fit(feature_vector_list)
+	
 	indices = neighbors.kneighbors([query_image_features])
 	ind1 = list(indices)
 	ind = list(ind1[1])
 	# print(ind[0])
-	for i in range(2):
+	for i in range(5):
 		result_product_id.append(product_id_list[ind[0][i]])
 		# print(product_id_list[ind[0][i]])
 	# print(product_id_list)
