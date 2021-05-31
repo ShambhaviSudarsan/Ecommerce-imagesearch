@@ -1,8 +1,8 @@
 from flask import request, Flask
 import numpy as np
 from numpy.linalg import norm
-# from keras.preprocessing import image
-# from keras.applications.resnet50 import ResNet50, preprocess_input
+from keras.preprocessing import image
+from keras.applications.resnet50 import ResNet50, preprocess_input
 from sklearn.neighbors import NearestNeighbors
 from PIL import Image as IMG
 import requests
