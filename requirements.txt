@@ -8,5 +8,5 @@ Pillow==8.2.0
 pymongo==3.11.3
 dnspython==2.1.0
 requests==2.17.3
-tensorflow==1.15
+tensorflow-cpu==1.15
 keras==2.3.1
