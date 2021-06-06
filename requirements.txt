@@ -1,12 +1,5 @@
-scikit-learn
-numpy
-flask
-pandas
-flask_cors
-gunicorn
-Pillow
-pymongo
-dnspython
+bs4
+lxml
 requests
-tensorflow-cpu
-keras
+flask
+gunicorn
