@@ -3,7 +3,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "*py",
+            "src": "a2.py",
             "use": "@liudonghua123/now-flask"
         }
     ],
