@@ -1,5 +1,12 @@
-bs4
-lxml
-requests
+scikit-learn
+numpy
 flask
+pandas
+flask_cors
 gunicorn
+Pillow
+pymongo
+dnspython
+requests
+tensorflow-cpu
+keras
