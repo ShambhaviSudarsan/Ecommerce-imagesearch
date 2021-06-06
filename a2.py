@@ -36,6 +36,10 @@ print(type(feature_vector_list[0]), type(product_id_list[0]))
 print("COMPLETED Extracting data from DB")
 
 
+@app.route("/")
+def home():
+    return "API is working fine"
+
 @app.route("/extract_features", methods = ['GET','POST'])
 def extract_features():
 	print("Before")
